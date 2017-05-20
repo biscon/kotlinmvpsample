@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity(), MainMvpView {
         presenter = MainPresenter(App.apiProxy())
         val d = Date()
         d.parseFromISO8601("2017-05-20T00:15:20+00:00")
-
+        
     }
 
     override fun onResume() {

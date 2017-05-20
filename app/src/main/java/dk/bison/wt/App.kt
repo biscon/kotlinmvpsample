@@ -11,15 +11,22 @@ class App : Application()
 {
     companion object {
         private lateinit var proxy : ApiProxy
+        private lateinit var _instance : App
 
         fun apiProxy() : ApiProxy
         {
             return proxy
         }
+
+        fun instance() : App
+        {
+            return _instance
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
+        _instance = this
         proxy = makeApiProxy()
     }
 }
