@@ -20,6 +20,7 @@ class MainPresenter(val api: ApiProxy) : MvpBasePresenter<MainMvpView>() {
     override fun attachView(view: MainMvpView) {
         super.attachView(view)
         Log.e("debug", "attachView")
+        /*
         loadPosts({ posts ->
             if (isViewAttached)
                 view?.showPosts(posts)
@@ -28,6 +29,8 @@ class MainPresenter(val api: ApiProxy) : MvpBasePresenter<MainMvpView>() {
                 // showerror
             }
         })
+        */
+
     }
 
     override fun detachView() {

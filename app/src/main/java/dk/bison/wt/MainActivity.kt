@@ -4,18 +4,53 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import dk.bison.wt.api.Post
+import kotlinx.coroutines.experimental.*
 import java.util.*
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity(), MainMvpView {
     private lateinit var presenter : MainPresenter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) = runBlocking<Unit> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         presenter = MainPresenter(App.apiProxy())
         val d = Date()
         d.parseFromISO8601("2017-05-20T00:15:20+00:00")
 
+        /*
+        val job = launch(CommonPool) { // create new coroutine and keep a reference to its Job
+            delay(1000L)
+            println("World!")
+            repeat(1000) { i ->
+                println("I'm sleeping $i ...")
+                delay(500L)
+            }
+        }
+        println("Hello,")
+        job.join() // wait until child coroutine completes
+        */
+        work()
+
+    }
+
+    suspend fun doSomethingUsefulOne(): Int {
+        delay(1000L) // pretend we are doing something useful here
+        return 13
+    }
+
+    suspend fun doSomethingUsefulTwo(): Int {
+        delay(1000L) // pretend we are doing something useful here, too
+        return 29
+    }
+
+    fun work() = runBlocking<Unit> {
+        val time = measureTimeMillis {
+            val one = async(CommonPool) { doSomethingUsefulOne() }
+            val two = async(CommonPool) { doSomethingUsefulTwo() }
+            println("The answer is ${one.await() + two.await()}")
+        }
+        println("Completed in $time ms")
     }
 
     override fun onResume() {
