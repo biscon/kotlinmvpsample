@@ -34,10 +34,13 @@ class App : Application()
 
         KStack.setLogFunction { tag, msg -> Log.e(tag, msg) }
         KStack.init(this, "BmZHmoKuU99A5ZnOByOiRxMVSmAWC2yBz3OW", "yw9go00oCWt6zPhfbdjRYXiHRWmkQZQSuRke", true)
+        KStack.setTranslationClass(Translation::class.java)
         Log.e("debug", "debug is now ${KStack.debug}")
-        KStack.appOpen({ failed ->
-            kLog(KStack.TAG, "appOpen failed = $failed")
+        /*
+        KStack.appOpen({ success ->
+            kLog(KStack.TAG, "appOpen success = $success")
         })
+        */
 
         //KStack.appOpen()
     }

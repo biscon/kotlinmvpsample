@@ -5,5 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="dk.bison.wt.MainActivity">
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Hej per"
+        android:textSize="24dp"
+        android:gravity="center"
+        />
 
 </android.support.constraint.ConstraintLayout>
