@@ -59,6 +59,7 @@ object KStack {
     private lateinit var backendManager : BackendManager
     private val translationManager = TranslationManager()
     private var updateJob : Job? = null
+    private var appOpenJob : Job? = null
     private lateinit var jsonStore : JsonStore
     private lateinit var appOpenSettings : AppOpenSettings
     var jsonLanguages : JSONObject? = null
@@ -186,7 +187,7 @@ object KStack {
     {
         if(!isInitialized)
             throw IllegalStateException("init() was not called")
-        async(CommonPool)
+        appOpenJob = launch(CommonPool)
         {
             // if Update job is still running, wait for it
             updateJob?.join()
@@ -222,11 +223,13 @@ object KStack {
     fun versionControl(callback : VersionControlCallback)
     {
         // we launch this async in case we need to wait for the updateJob to complete
-        async(CommonPool)
+        launch(CommonPool)
         {
             // if Update job is still running, wait for it
             updateJob?.join()
-            //delay(5000L)
+            // if app open is still running, wait for it
+            appOpenJob?.join()
+
             launch(UI)
             {
 

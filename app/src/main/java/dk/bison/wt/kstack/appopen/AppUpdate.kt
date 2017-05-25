@@ -35,8 +35,8 @@ class AppUpdate(json : JSONObject)
         {
             title = translate.optString("title", null)
             message = translate.optString("message", null)
-            positiveBtn = translate.optString("positiveBtn")
-            negativeBtn = translate.optString("negativeBtn")
+            positiveBtn = translate.optString("positiveBtn", null)
+            negativeBtn = translate.optString("negativeBtn", null)
         }
     }
 }
