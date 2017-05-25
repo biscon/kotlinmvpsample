@@ -6,21 +6,24 @@ import android.util.Log
 import android.widget.TextView
 import dk.bison.wt.api.Post
 import dk.bison.wt.kstack.KStack
+import dk.bison.wt.kstack.parseFromISO8601
 import dk.bison.wt.kstack.translate.Translate
 import kotlinx.coroutines.experimental.*
 import java.util.*
 import kotlin.system.measureTimeMillis
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), MainMvpView {
     private lateinit var presenter : MainPresenter
 
-    @Translate("defaultSection.cancel") var textTv : TextView? = null
+    //@Translate("defaultSection.cancel") var textTv : TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) = runBlocking<Unit> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        textTv = findViewById(R.id.text) as TextView
-        //textTv.text = Translation.defaultSection.settings
+
+        //textTv = findViewById(R.id.text) as TextView
+        textTv.text = Translation.defaultSection.settings
         KStack.translate(this@MainActivity)
 
         presenter = MainPresenter(App.apiProxy())
@@ -39,29 +42,11 @@ class MainActivity : AppCompatActivity(), MainMvpView {
         println("Hello,")
         job.join() // wait until child coroutine completes
         */
-        work()
-
+        KStack.appOpen({
+            //textTv.text = Translation.defaultSection.settings
+        })
     }
 
-
-    suspend fun doSomethingUsefulOne(): Int {
-        delay(1000L) // pretend we are doing something useful here
-        return 13
-    }
-
-    suspend fun doSomethingUsefulTwo(): Int {
-        delay(1000L) // pretend we are doing something useful here, too
-        return 29
-    }
-
-    fun work() = runBlocking<Unit> {
-        val time = measureTimeMillis {
-            val one = async(CommonPool) { doSomethingUsefulOne() }
-            val two = async(CommonPool) { doSomethingUsefulTwo() }
-            println("The answer is ${one.await() + two.await()}")
-        }
-        println("Completed in $time ms")
-    }
 
     override fun onResume() {
         super.onResume()
