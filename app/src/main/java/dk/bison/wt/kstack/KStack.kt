@@ -31,7 +31,7 @@ typealias LogFunction = (tag : String, msg : String) -> Unit
 enum class UpdateType {
     UPDATE,
     FORCE_UPDATE,
-    CHANGELOG,
+    //CHANGELOG, <-- fuck you changelog, nobody use you!!
     NOTHING
 }
 
@@ -166,7 +166,8 @@ object KStack {
                             kLog(TAG, e.message ?: "Exception opening google play")
                         }
                     })
-                    .setCancelable(appUpdate?.force ?: false)
+                    .setCancelable(!(appUpdate?.force ?: false))
+
                     if(appUpdate?.force ?: false)
                         callback(UpdateType.FORCE_UPDATE, builder)
                     else
