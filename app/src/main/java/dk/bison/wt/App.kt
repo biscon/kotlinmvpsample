@@ -4,8 +4,7 @@ import android.app.Application
 import android.util.Log
 import dk.bison.wt.api.ApiProxy
 import dk.bison.wt.api.makeApiProxy
-import dk.bison.wt.kstack.KStack
-import dk.bison.wt.kstack.kLog
+import dk.nodes.kstack.KStack
 
 /**
  * Created by bison on 20-05-2017.

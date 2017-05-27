@@ -5,10 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import dk.bison.wt.api.Post
-import dk.bison.wt.kstack.KStack
-import dk.bison.wt.kstack.UpdateType
 import dk.bison.wt.kstack.parseFromISO8601
-import dk.bison.wt.kstack.translate.Translate
+import dk.nodes.kstack.KStack
+import dk.nodes.kstack.UpdateType
 import kotlinx.coroutines.experimental.*
 import java.util.*
 import kotlin.system.measureTimeMillis
@@ -31,14 +30,9 @@ class MainActivity : AppCompatActivity(), MainMvpView {
         val d = Date()
         d.parseFromISO8601("2017-05-20T00:15:20+00:00")
 
-
-        KStack.appOpen({
-            //textTv.text = Translation.defaultSection.settings
-            Log.e("debug", "appOpen callback running")
-        })
+        KStack.appOpen({success -> Log.e("debug", "appopen success = $success") })
 
         KStack.versionControl(this@MainActivity, {type, builder ->
-            Log.e("debug", "versionControl callback running")
             when(type)
             {
                 UpdateType.UPDATE -> builder?.show()
