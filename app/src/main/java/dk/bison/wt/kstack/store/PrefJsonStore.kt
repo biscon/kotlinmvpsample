@@ -3,6 +3,7 @@ package dk.bison.wt.kstack.store
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import dk.bison.wt.kstack.kLog
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
@@ -15,6 +16,7 @@ import org.json.JSONObject
  * Created by bison on 24-05-2017.
  */
 class PrefJsonStore(context : Context) : JsonStore {
+    val TAG = "PrefsJsonStore"
     val prefs : SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     override fun save(key: String, obj: JSONObject, callback: SaveCallback) {
@@ -28,14 +30,19 @@ class PrefJsonStore(context : Context) : JsonStore {
 
     override fun load(key: String): JSONObject? {
         try {
-            val json_data: String? = prefs.getString(key, null)
-            val json_obj = JSONObject(json_data)
-            return json_obj
+            if(prefs.contains(key)) {
+                val json_data: String? = prefs.getString(key, null)
+                val json_obj: JSONObject? = JSONObject(json_data)
+                return json_obj
+            }
+            else
+                kLog(TAG, "Could not load $key, key does not exist")
         }
         catch (e : JSONException)
         {
-            return null
+            e.printStackTrace()
         }
+        return null
     }
 
     override fun loadDeferred(key: String): Deferred<JSONObject?> {

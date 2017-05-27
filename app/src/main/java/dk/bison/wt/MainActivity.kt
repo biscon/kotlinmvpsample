@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.TextView
 import dk.bison.wt.api.Post
 import dk.bison.wt.kstack.KStack
+import dk.bison.wt.kstack.UpdateType
 import dk.bison.wt.kstack.parseFromISO8601
 import dk.bison.wt.kstack.translate.Translate
 import kotlinx.coroutines.experimental.*
@@ -30,20 +31,24 @@ class MainActivity : AppCompatActivity(), MainMvpView {
         val d = Date()
         d.parseFromISO8601("2017-05-20T00:15:20+00:00")
 
-        /*
-        val job = launch(CommonPool) { // create new coroutine and keep a reference to its Job
-            delay(1000L)
-            println("World!")
-            repeat(1000) { i ->
-                println("I'm sleeping $i ...")
-                delay(500L)
-            }
-        }
-        println("Hello,")
-        job.join() // wait until child coroutine completes
-        */
+
         KStack.appOpen({
             //textTv.text = Translation.defaultSection.settings
+            Log.e("debug", "appOpen callback running")
+        })
+
+        KStack.versionControl(this@MainActivity, {type, builder ->
+            Log.e("debug", "versionControl callback running")
+            when(type)
+            {
+                UpdateType.UPDATE -> builder?.show()
+                UpdateType.FORCE_UPDATE -> {
+                    builder?.setOnDismissListener { finish() }
+                    builder?.show()
+                }
+                else -> {
+                }
+            }
         })
     }
 

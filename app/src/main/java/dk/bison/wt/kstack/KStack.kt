@@ -1,7 +1,11 @@
 package dk.bison.wt.kstack
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.support.v7.app.AlertDialog
+import dk.bison.wt.R
 import dk.bison.wt.kstack.appopen.AppOpenSettings
 import dk.bison.wt.kstack.appopen.AppUpdate
 import dk.bison.wt.kstack.providers.HttpCacheProvider
@@ -62,10 +66,10 @@ object KStack {
     private var appOpenJob : Job? = null
     private lateinit var jsonStore : JsonStore
     private lateinit var appOpenSettings : AppOpenSettings
-    var jsonLanguages : JSONObject? = null
-    var jsonTranslations : JSONObject? = null
-    val localeLanguageMap : MutableMap<String, Language> = HashMap()
-    var appUpdate : AppUpdate? = null
+    private var jsonLanguages : JSONObject? = null
+    private var jsonTranslations : JSONObject? = null
+    private val localeLanguageMap : MutableMap<String, Language> = HashMap()
+    private var appUpdate : AppUpdate? = null
 
     // Properties with custom setters/getters ---------------------------------------------------
     var currentLocale : String? = null
@@ -87,7 +91,7 @@ object KStack {
             return Locale.getDefault().toLanguageTag()
         }
 
-
+    // Public interface --------------------------------------------------------------
     fun init(appContext : Context, appId : String, appKey : String, debug : Boolean = false)
     {
         if(isInitialized)
@@ -118,6 +122,79 @@ object KStack {
 
     }
 
+    fun appOpen(callback: AppOpenCallback = {})
+    {
+        if(!isInitialized)
+            throw IllegalStateException("init() was not called")
+        appOpenJob = launch(CommonPool)
+        {
+            // if Update job is still running, wait for it
+            updateJob?.join()
+            val response = backendManager.postAppOpen(appOpenSettings, currentLocale ?: deviceLocale).await()
+            if(response.isSuccessful)
+                parseAppOpenResponse(response)
+            launch(UI)
+            {
+                callback(response.isSuccessful)
+            }
+        }
+    }
+
+    fun versionControl(activity : Activity, callback : VersionControlCallback)
+    {
+        // we launch this async in case we need to wait for the updateJob to complete
+        launch(CommonPool)
+        {
+            // if Update job is still running, wait for it
+            updateJob?.join()
+            // if app open is still running, wait for it
+            appOpenJob?.join()
+
+            launch(UI)
+            {
+                if(appUpdate?.isUpdate ?: false)
+                {
+                    val builder = AlertDialog.Builder(activity, R.style.znstack_DialogStyle)
+                    builder.setTitle(appUpdate?.title)
+                    builder.setMessage(appUpdate?.message)
+                    builder.setPositiveButton(appUpdate?.positiveBtn ?: "Ok", {dialog, which ->
+                        try {
+                            val i = Intent(Intent.ACTION_VIEW, Uri.parse(appUpdate?.link))
+                            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            appContext.startActivity(i)
+                        } catch (e: Exception) {
+                            kLog(TAG, e.message ?: "Exception opening google play")
+                        }
+                    })
+                    .setCancelable(appUpdate?.force ?: false)
+                    if(appUpdate?.force ?: false)
+                        callback(UpdateType.FORCE_UPDATE, builder)
+                    else
+                        callback(UpdateType.UPDATE, builder)
+                }
+                else    // we never got the app open object for some reason or isUpdate was false
+                    callback(UpdateType.NOTHING, null)
+
+            }
+        }
+    }
+
+    fun setLogFunction(fnc : LogFunction)
+    {
+        kLog = fnc
+    }
+
+    fun setTranslationClass(translationClass : Class<*>)
+    {
+        translationManager.setTranslationClass(translationClass)
+    }
+
+    fun translate(view: Any)
+    {
+        translationManager.translate(view)
+    }
+
+    // private fun -------------------------------------------------------------------------------
     private fun buildLocaleLanguageMap(languages: JSONObject) {
         val lang_array = languages.getJSONArray("data")
         repeat(lang_array.length()) { i ->
@@ -165,7 +242,7 @@ object KStack {
         return null
     }
 
-    fun updateCache() {
+    private fun updateCache() {
         updateJob = launch(CommonPool) {
             jsonLanguages = jsonStore.loadDeferred(StoreId.LANGUAGES.name).await()
             jsonTranslations = jsonStore.loadDeferred(StoreId.TRANSLATIONS.name).await()
@@ -183,23 +260,7 @@ object KStack {
         }
     }
 
-    fun appOpen(callback: AppOpenCallback = {})
-    {
-        if(!isInitialized)
-            throw IllegalStateException("init() was not called")
-        appOpenJob = launch(CommonPool)
-        {
-            // if Update job is still running, wait for it
-            updateJob?.join()
-            val response = backendManager.postAppOpen(appOpenSettings, currentLocale ?: deviceLocale).await()
-            if(response.isSuccessful)
-                parseAppOpenResponse(response)
-            launch(UI)
-            {
-                callback(response.isSuccessful)
-            }
-        }
-    }
+
 
     private fun parseAppOpenResponse(response: Response) {
         try {
@@ -220,35 +281,4 @@ object KStack {
         }
     }
 
-    fun versionControl(callback : VersionControlCallback)
-    {
-        // we launch this async in case we need to wait for the updateJob to complete
-        launch(CommonPool)
-        {
-            // if Update job is still running, wait for it
-            updateJob?.join()
-            // if app open is still running, wait for it
-            appOpenJob?.join()
-
-            launch(UI)
-            {
-
-            }
-        }
-    }
-
-    fun setLogFunction(fnc : LogFunction)
-    {
-        kLog = fnc
-    }
-
-    fun setTranslationClass(translationClass : Class<*>)
-    {
-        translationManager.setTranslationClass(translationClass)
-    }
-
-    fun translate(view: Any)
-    {
-        translationManager.translate(view)
-    }
 }
